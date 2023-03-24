@@ -50,7 +50,7 @@ Stage: run
 
     pypy3 /planner/fast-downward.py \
         --plan-file "$PLANFILE" \
-        --alias "seq-sat-greedy-2023" \
+        --alias "seq-opt-cegar-pdbs-domain-abstractions" \
         --overall-time-limit 30m \
         "$DOMAINFILE" \
         "$PROBLEMFILE"
@@ -69,5 +69,5 @@ SupportsUniversallyQuantifiedEffects            yes
 SupportsNegativePreconditions                   yes
 SupportsEqualityPreconditions                   yes
 SupportsInequalityPreconditions                 yes
-SupportsConditionalEffects                      TODO
+SupportsConditionalEffects                      no
 SupportsImplyPreconditions                      yes
