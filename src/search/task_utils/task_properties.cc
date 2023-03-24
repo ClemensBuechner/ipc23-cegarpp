@@ -165,6 +165,19 @@ void dump_task(const TaskProxy &task_proxy) {
     utils::g_log << "Initial state (FDR):" << endl;
     dump_fdr(initial_state);
     dump_goals(task_proxy.get_goals());
+
+    utils::g_log << "Operators:" << endl;
+    for (OperatorProxy op : operators) {
+        utils::g_log << "op#" << op.get_id() << ": preconditions: ";
+        for (auto pre : op.get_preconditions()) {
+            utils::g_log << pre.get_pair().var << "->" << pre.get_pair().value << "; ";
+        }
+        utils::g_log << "; effects: ";
+        for (auto eff : op.get_effects()) {
+            utils::g_log << eff.get_fact().get_pair().var << "->" << eff.get_fact().get_pair().value << "; ";
+        }
+        utils::g_log << endl;
+    }
 }
 
 PerTaskInformation<int_packer::IntPacker> g_state_packers(
@@ -173,7 +186,10 @@ PerTaskInformation<int_packer::IntPacker> g_state_packers(
         vector<int> variable_ranges;
         variable_ranges.reserve(variables.size());
         for (VariableProxy var : variables) {
-            variable_ranges.push_back(var.get_domain_size());
+            /* IntPacker expects all variables to have at least a domain size of
+               two. This is not the case for some domain-abstracted tasks. */
+            int domain_size = max(2, var.get_domain_size());
+            variable_ranges.push_back(domain_size);
         }
         return utils::make_unique_ptr<int_packer::IntPacker>(variable_ranges);
     }

@@ -217,6 +217,14 @@ fast_downward_plugin(
 )
 
 fast_downward_plugin(
+    NAME PARTIAL_STATE_TREE
+    HELP "Compact representation of sets of fact conjunctions"
+    SOURCES
+        algorithms/partial_state_tree
+    DEPENDENCY_ONLY
+)
+
+fast_downward_plugin(
     NAME PRIORITY_QUEUES
     HELP "Three implementations of priority queue: HeapQueue, BucketQueue and AdaptiveQueue"
     SOURCES
@@ -643,7 +651,10 @@ fast_downward_plugin(
         cegar/cartesian_set
         cegar/cegar
         cegar/cost_saturation
+        cegar/flaw
+        cegar/flaw_search
         cegar/refinement_hierarchy
+        cegar/shortest_paths
         cegar/split_selector
         cegar/subtask_generators
         cegar/transition
@@ -652,6 +663,44 @@ fast_downward_plugin(
         cegar/utils
         cegar/utils_landmarks
     DEPENDS ADDITIVE_HEURISTIC DYNAMIC_BITSET EXTRA_TASKS LANDMARKS PRIORITY_QUEUES TASK_PROPERTIES
+)
+
+fast_downward_plugin(
+    NAME COST_SATURATION
+    HELP "Saturated cost partitioning"
+    SOURCES
+        cost_saturation/abstraction
+        cost_saturation/abstraction_generator
+        cost_saturation/canonical_heuristic
+        cost_saturation/cartesian_abstraction_generator
+        cost_saturation/cost_partitioning_heuristic
+        cost_saturation/cost_partitioning_heuristic_collection_generator
+        cost_saturation/diversifier
+        cost_saturation/domain_abstraction
+        cost_saturation/domain_abstraction_generator
+        cost_saturation/explicit_abstraction
+        cost_saturation/explicit_projection_factory
+        cost_saturation/greedy_order_utils
+        cost_saturation/max_cost_partitioning_heuristic
+        cost_saturation/max_heuristic
+        cost_saturation/optimal_cost_partitioning_heuristic
+        cost_saturation/order_generator
+        cost_saturation/order_generator_dynamic_greedy
+        cost_saturation/order_generator_greedy
+        cost_saturation/order_generator_random
+        cost_saturation/order_optimizer
+        cost_saturation/pho_heuristic
+        cost_saturation/plugin_group
+        cost_saturation/projection
+        cost_saturation/projection_generator
+        cost_saturation/saturated_cost_partitioning_heuristic
+        cost_saturation/saturated_cost_partitioning_online_heuristic
+        cost_saturation/types
+        cost_saturation/uniform_cost_partitioning_heuristic
+        cost_saturation/unsolvability_heuristic
+        cost_saturation/utils
+        cost_saturation/zero_one_cost_partitioning_heuristic
+    DEPENDS CEGAR LP_SOLVER PDBS PARTIAL_STATE_TREE PRIORITY_QUEUES SAMPLING TASK_PROPERTIES
 )
 
 fast_downward_plugin(
@@ -734,6 +783,28 @@ fast_downward_plugin(
 )
 
 fast_downward_plugin(
+    NAME DOMAIN_ABSTRACTIONS
+    HELP "Plugin containing the code for domain abstractions"
+    SOURCES
+        domain_abstractions/cegar
+        domain_abstractions/domain_abstraction
+        domain_abstractions/domain_abstraction_collection_generator
+        domain_abstractions/domain_abstraction_collection_generator_multiple
+        domain_abstractions/domain_abstraction_collection_generator_multiple_cegar
+        domain_abstractions/domain_abstraction_collection_generator_multiple_random
+        domain_abstractions/domain_abstraction_factory
+        domain_abstractions/domain_abstraction_generator
+        domain_abstractions/domain_abstraction_generator_cegar
+        domain_abstractions/domain_abstraction_heuristic
+        domain_abstractions/match_tree
+        domain_abstractions/match_tree_with_pattern
+        domain_abstractions/max_heuristic
+        domain_abstractions/random
+        domain_abstractions/utils
+    DEPENDS TASK_PROPERTIES
+)
+
+fast_downward_plugin(
     NAME PDBS
     HELP "Plugin containing the code for PDBs"
     SOURCES
@@ -755,7 +826,9 @@ fast_downward_plugin(
         pdbs/pattern_collection_generator_multiple_random
         pdbs/pattern_collection_generator_multiple
         pdbs/pattern_collection_generator_systematic
+        pdbs/pattern_collection_generator_systematic_scp
         pdbs/pattern_database
+        pdbs/pattern_evaluator
         pdbs/pattern_generator_cegar
         pdbs/pattern_generator_greedy
         pdbs/pattern_generator_manual

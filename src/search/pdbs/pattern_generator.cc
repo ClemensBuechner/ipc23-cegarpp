@@ -8,7 +8,8 @@ using namespace std;
 
 namespace pdbs {
 PatternCollectionGenerator::PatternCollectionGenerator(const options::Options &opts)
-    : log(utils::get_log_from_options(opts)) {
+    : log(utils::get_log_from_options(opts)),
+      dead_ends(nullptr) {
 }
 
 PatternCollectionInformation PatternCollectionGenerator::generate(

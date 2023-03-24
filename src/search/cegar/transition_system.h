@@ -43,10 +43,10 @@ class TransitionSystem {
 
     void rewire_incoming_transitions(
         const Transitions &old_incoming, const AbstractStates &states,
-        const AbstractState &v1, const AbstractState &v2, int var);
+        int v_id, const AbstractState &v1, const AbstractState &v2, int var);
     void rewire_outgoing_transitions(
         const Transitions &old_outgoing, const AbstractStates &states,
-        const AbstractState &v1, const AbstractState &v2, int var);
+        int v_id, const AbstractState &v1, const AbstractState &v2, int var);
     void rewire_loops(
         const Loops &old_loops,
         const AbstractState &v1, const AbstractState &v2, int var);
@@ -63,12 +63,15 @@ public:
     const std::vector<Transitions> &get_outgoing_transitions() const;
     const std::vector<Loops> &get_loops() const;
 
+    const std::vector<FactPair> &get_preconditions(int op_id) const;
+
     int get_num_states() const;
     int get_num_operators() const;
     int get_num_non_loops() const;
     int get_num_loops() const;
 
     void print_statistics(utils::LogProxy &log) const;
+    void dump() const;
 };
 }
 
