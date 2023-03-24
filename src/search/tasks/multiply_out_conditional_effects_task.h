@@ -2,7 +2,6 @@
 #define TASKS_MULTIPLY_OUT_CONDITIONAL_EFFECTS_TASK_H
 
 #include "delegating_task.h"
-#include "../task_proxy.h"
 
 namespace options {
 class Options;
@@ -23,8 +22,8 @@ class MultiplyOutConditionalEffectsTask : public DelegatingTask {
       i.e. conditions and effects of each operator, is sorted in the same
       order (var, val) as the inducing operator of the parent task.
     */
-    std::vector<std::vector<GlobalCondition>> operators_conditions;
-    std::vector<std::vector<GlobalEffect>> operators_effects;
+    std::vector<std::vector<FactPair>> operators_conditions;
+    std::vector<std::vector<FactPair>> operators_effects;
     std::vector<int> parent_operator_index;
 
     void add_non_conditional_operator(int op_no);
@@ -32,7 +31,9 @@ class MultiplyOutConditionalEffectsTask : public DelegatingTask {
     void multiply_out_conditions(int op_no, const std::vector<int>& conditional_variables,
             int var_index, std::vector<FactPair>& multiplied_conditions);
 public:
-    explicit MultiplyOutConditionalEffectsTask(const options::Options &opts);
+    MultiplyOutConditionalEffectsTask(
+        const std::shared_ptr<AbstractTask> &parent,
+        const options::Options &opts);
     virtual ~MultiplyOutConditionalEffectsTask() override = default;
 
     virtual int get_operator_cost(int index, bool is_axiom) const override;
@@ -48,7 +49,7 @@ public:
         int op_index, int eff_index, int cond_index, bool is_axiom) const override;
     virtual FactPair get_operator_effect(
         int op_index, int eff_index, bool is_axiom) const override;
-    virtual OperatorID get_global_operator_id(OperatorID id) const override;
+    virtual int convert_operator_index_to_parent(int index) const;
 };
 }
 
