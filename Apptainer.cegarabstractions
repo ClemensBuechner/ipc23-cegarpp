@@ -19,6 +19,7 @@ Stage: build
     pypy3 build.py
 
     strip --strip-all /planner/builds/release/bin/downward
+    strip --strip-all /planner/builds/release/bin/preprocess-h2
 
 # Stage 2: Run the planner
 Bootstrap: docker
@@ -35,7 +36,6 @@ Stage: run
     apt-get -y install --no-install-recommends pypy3
     rm -rf /var/lib/apt/lists/*
 
-# The runscript is called whenever the container is used to solve an instance.
 %runscript
     DOMAINFILE="$1"
     PROBLEMFILE="$2"
@@ -43,15 +43,15 @@ Stage: run
 
     pypy3 /planner/fast-downward.py \
         --plan-file "$PLANFILE" \
-        --overall-time-limit 30m \
+        --transform-task /planner/builds/release/bin/preprocess-h2 \
+        --transform-task-options h2_time_limit,240 \
         "$DOMAINFILE" \
         "$PROBLEMFILE" \
         --search \
         "astar(scp([projections(hillclimbing(max_time=100)), projections(systematic(2)), cartesian(), projections(multiple_cegar(total_max_time=100, max_pdb_size=10k, max_collection_size=1M, stagnation_limit=20, blacklist_trigger_percentage=0, verbosity=normal)), domain_abstractions(multiple_domain_abstractions_cegar(flaw_treatment=random_single_atom, max_abstraction_size=10k, max_collection_size=1M, init_split_quantity=single, init_split_candidates=goals, init_split_method=identity, blacklist_trigger_percentage=0, verbosity=normal))], max_orders=infinity, max_optimization_time=2, diversify=true, max_time=200, orders=greedy_orders(scoring_function=max_heuristic_per_stolen_costs)))"
 
-# Define meta data
 %labels
-Name        CEGAR PDBs and Domain Abstractions
+Name        CEGAR Abstractions
 Description Pattern Databases for interesting patterns up to size 2, patterns computed with hill climbing and CEGAR, combined with domain abstractions and Cartesian abstractions computed with CEGAR in a maximum heuristic over SCP heuristics, generated through greedy computation of hybrid-optimized orders.
 Authors     Raphael Kreft <r.kreft@unibas.ch> Clemens Büchner <clemens.buechner@unibas.ch>, Silvan Sievers <silvan.sievers@unibas.ch>
 License     GPL 3
