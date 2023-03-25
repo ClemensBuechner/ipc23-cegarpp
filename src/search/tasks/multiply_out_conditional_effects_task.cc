@@ -31,27 +31,7 @@ MultiplyOutConditionalEffectsTask::MultiplyOutConditionalEffectsTask(
         TaskProxy task_proxy(*this);
         TaskProxy parent_proxy(*parent);
         for (int op_no = 0; op_no < parent->get_num_operators(); ++op_no) {
-            size_t previous_num_ops = operators_conditions.size();
-            if (log.is_at_least_debug()) {
-                OperatorProxy op = parent_proxy.get_operators()[op_no];
-                log << "Multiplying out operator with id " << op_no << endl;
-                log << op.get_name() << endl;
-                log << "preconditions: ";
-                for (FactProxy pre : op.get_preconditions()) {
-                    log << pre.get_name() << " " << pre.get_pair() << "; ";
-                }
-                log << endl;
-                log << "effects: ";
-                for (EffectProxy eff : op.get_effects()) {
-                    log << "effect conditions: ";
-                    for (FactProxy cond : eff.get_conditions()) {
-                        log << cond.get_name() << " " << cond.get_pair() << "; ";
-                    }
-                    FactProxy e = eff.get_fact();
-                    log << "effect: " << e.get_name() << " " << e.get_pair() << endl;
-                }
-                log << endl;
-            }
+
             set<int> condition_variables;
             for (int fact_index = 0; fact_index < parent->get_num_operator_effects(op_no, false); ++fact_index) {
                 for (int c_index = 0; c_index < parent->get_num_operator_effect_conditions(op_no, fact_index, false); ++c_index) {
@@ -63,28 +43,52 @@ MultiplyOutConditionalEffectsTask::MultiplyOutConditionalEffectsTask(
                 // No conditional effects, just push the operator
                 add_non_conditional_operator(op_no);
             } else {
+                size_t previous_num_ops = operators_conditions.size();
+
                 vector<int> cvars(condition_variables.begin(), condition_variables.end());
                 vector<FactPair> multiplied_conditions;
                 multiply_out_conditions(op_no, cvars, 0, multiplied_conditions);
-            }
-            if (log.is_at_least_debug()) {
-                log << "Multiplied out operators" << endl;
-                for (size_t i = previous_num_ops; i < operators_conditions.size(); ++i) {
+
+                // Debugging output for multiplied out operators.
+                size_t num_multiplied_out_operators = operators_conditions.size() - previous_num_ops;
+                if (log.is_at_least_debug() && num_multiplied_out_operators > 1) {
+                    OperatorProxy op = parent_proxy.get_operators()[op_no];
+                    log << "Multiplying out operator with id " << op_no << endl;
+                    log << op.get_name() << endl;
                     log << "preconditions: ";
-                    for (FactPair pre : operators_conditions[i]) {
-                        log << pre << "; ";
+                    for (FactProxy pre : op.get_preconditions()) {
+                        log << pre.get_name() << " " << pre.get_pair() << "; ";
                     }
                     log << endl;
                     log << "effects: ";
-                    for (FactPair eff : operators_effects[i]) {
-                        log << eff << "; ";
+                    for (EffectProxy eff : op.get_effects()) {
+                        log << "effect conditions: ";
+                        for (FactProxy cond : eff.get_conditions()) {
+                            log << cond.get_name() << " " << cond.get_pair() << "; ";
+                        }
+                        FactProxy e = eff.get_fact();
+                        log << "effect: " << e.get_name() << " " << e.get_pair() << endl;
+                    }
+                    log << endl;
+
+                    log << "Multiplied out operators" << endl;
+                    for (size_t i = previous_num_ops; i < operators_conditions.size(); ++i) {
+                        log << "preconditions: ";
+                        for (FactPair pre : operators_conditions[i]) {
+                            log << pre << "; ";
+                        }
+                        log << endl;
+                        log << "effects: ";
+                        for (FactPair eff : operators_effects[i]) {
+                            log << eff << "; ";
+                        }
+                        log << endl;
                     }
                     log << endl;
                 }
-                log << endl;
             }
         }
-        
+
         task_properties::verify_no_conditional_effects(task_proxy);
     }
 }
