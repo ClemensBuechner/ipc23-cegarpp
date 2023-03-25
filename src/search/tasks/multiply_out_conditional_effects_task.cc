@@ -57,17 +57,18 @@ MultiplyOutConditionalEffectsTask::MultiplyOutConditionalEffectsTask(
                     log << op.get_name() << endl;
                     log << "preconditions: ";
                     for (FactProxy pre : op.get_preconditions()) {
-                        log << pre.get_name() << " " << pre.get_pair() << "; ";
+                        log << pre.get_pair() << " (" << pre.get_name() << "); ";
                     }
                     log << endl;
-                    log << "effects: ";
+                    log << "effects: " << endl;
                     for (EffectProxy eff : op.get_effects()) {
                         log << "effect conditions: ";
                         for (FactProxy cond : eff.get_conditions()) {
-                            log << cond.get_name() << " " << cond.get_pair() << "; ";
+                            log << cond.get_pair() << " (" << cond.get_name() << "); ";
                         }
                         FactProxy e = eff.get_fact();
-                        log << "effect: " << e.get_name() << " " << e.get_pair() << endl;
+                        log << "effect: " << e.get_pair() << " (" << e.get_name() << "); ";
+                        log << endl;
                     }
                     log << endl;
 
@@ -144,6 +145,8 @@ void MultiplyOutConditionalEffectsTask::add_conditional_operator(int op_no,
     if (effects.empty())
         return;
 
+    // Effects have to be sorted by var in various places of the planner.
+    sort(effects.begin(), effects.end());
     operators_effects.push_back(effects);
 
     // Compute a mapping of variables to indices (i.e. an order) according
