@@ -96,18 +96,20 @@ MultiplyOutConditionalEffectsTask::MultiplyOutConditionalEffectsTask(
 
 void MultiplyOutConditionalEffectsTask::add_non_conditional_operator(int op_no) {
     vector<FactPair> conditions;
+    conditions.reserve(parent->get_num_operator_preconditions(op_no, false));
     for (int fact_index = 0; fact_index < parent->get_num_operator_preconditions(op_no, false); ++fact_index) {
         FactPair fact = parent->get_operator_precondition(op_no, fact_index, false);
-        conditions.emplace_back(fact.var, fact.value);
+        conditions.push_back(move(fact));
     }
-    operators_conditions.push_back(conditions); // Already sorted.
+    operators_conditions.push_back(move(conditions)); // Already sorted.
 
     vector<FactPair> effects;
+    effects.reserve(parent->get_num_operator_effects(op_no, false));
     for (int fact_index = 0; fact_index < parent->get_num_operator_effects(op_no, false); ++fact_index) {
         FactPair fact = parent->get_operator_effect(op_no, fact_index, false);
-        effects.emplace_back(fact.var, fact.value);
+        effects.push_back(move(fact));
     }
-    operators_effects.push_back(effects); // Already sorted.
+    operators_effects.push_back(move(effects)); // Already sorted.
 
     parent_operator_index.push_back(op_no);
 }
@@ -139,7 +141,7 @@ void MultiplyOutConditionalEffectsTask::add_conditional_operator(int op_no,
             // Check if the operator effect is not redundant because it is
             // already a (multiplied out) precondidtion.
             if (assignment[fact.var] != fact.value)
-                effects.emplace_back(fact.var, fact.value);
+                effects.push_back(move(fact));
         }
     }
     if (effects.empty())
@@ -147,14 +149,7 @@ void MultiplyOutConditionalEffectsTask::add_conditional_operator(int op_no,
 
     // Effects have to be sorted by var in various places of the planner.
     sort(effects.begin(), effects.end());
-    operators_effects.push_back(effects);
-
-    // Compute a mapping of variables to indices (i.e. an order) according
-    // to the effects of the operator.
-    vector<int> effect_var_indices(parent->get_num_variables(), -1);
-    for (size_t i = 0; i < effects.size(); ++i) {
-        effect_var_indices[effects[i].var] = i;
-    }
+    operators_effects.push_back(move(effects));
 
     /*
       Collect preconditions of the operators from the parent's preconditions
@@ -165,10 +160,10 @@ void MultiplyOutConditionalEffectsTask::add_conditional_operator(int op_no,
     set<FactPair> conditions;
     for (int fact_index = 0; fact_index < parent->get_num_operator_preconditions(op_no, false); ++fact_index) {
         FactPair fact = parent->get_operator_precondition(op_no, fact_index, false);
-        conditions.insert(fact);
+        conditions.insert(move(fact));
     }
     for (FactPair fact : multiplied_conditions) {
-        conditions.insert(fact);
+        conditions.insert(move(fact));
     }
 
     // Turn the conditions into a vector.
