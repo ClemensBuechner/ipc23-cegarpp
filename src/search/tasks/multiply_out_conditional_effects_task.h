@@ -3,8 +3,8 @@
 
 #include "delegating_task.h"
 
-namespace options {
-class Options;
+namespace utils {
+class LogProxy;
 }
 
 namespace tasks {
@@ -15,7 +15,6 @@ namespace tasks {
   assignment to the variables mentioned in the conditions.
 */
 class MultiplyOutConditionalEffectsTask : public DelegatingTask {
-    const bool dump_tasks;
     const bool parent_has_conditional_effects;
     /*
       The following is indexed by operator ids of this task. Each element,
@@ -33,7 +32,7 @@ class MultiplyOutConditionalEffectsTask : public DelegatingTask {
 public:
     MultiplyOutConditionalEffectsTask(
         const std::shared_ptr<AbstractTask> &parent,
-        const options::Options &opts);
+        utils::LogProxy &log);
     virtual ~MultiplyOutConditionalEffectsTask() override = default;
 
     virtual int get_operator_cost(int index, bool is_axiom) const override;
@@ -51,6 +50,9 @@ public:
         int op_index, int eff_index, bool is_axiom) const override;
     virtual int convert_operator_index_to_parent(int index) const;
 };
+
+extern std::shared_ptr<AbstractTask> &get_root_task_without_conditional_effects(
+    utils::LogProxy &log);
 }
 
 #endif

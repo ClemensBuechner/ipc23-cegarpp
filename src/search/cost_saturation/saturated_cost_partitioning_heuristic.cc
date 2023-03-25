@@ -12,6 +12,8 @@
 
 #include "../algorithms/partial_state_tree.h"
 #include "../task_utils/task_properties.h"
+#include "../tasks/multiply_out_conditional_effects_task.h"
+#include "../utils/logging.h"
 #include "../utils/markup.h"
 
 using namespace std;
@@ -137,11 +139,13 @@ static shared_ptr<Evaluator> _parse(OptionParser &parser) {
         return nullptr;
 
     shared_ptr<AbstractTask> task = opts.get<shared_ptr<AbstractTask>>("transform");
-    TaskProxy task_proxy(*task);
+    utils::LogProxy log = utils::get_log_from_options(opts);
+    shared_ptr<AbstractTask> transformed_task = tasks::get_root_task_without_conditional_effects(log);
+    TaskProxy task_proxy(*transformed_task);
     vector<int> costs = task_properties::get_operator_costs(task_proxy);
     unique_ptr<DeadEnds> dead_ends = utils::make_unique_ptr<DeadEnds>();
     Abstractions abstractions = generate_abstractions(
-        task, opts.get_list<shared_ptr<AbstractionGenerator>>("abstractions"), dead_ends.get());
+        transformed_task, opts.get_list<shared_ptr<AbstractionGenerator>>("abstractions"), dead_ends.get());
     CPFunction cp_function = get_cp_function_from_options(opts);
     vector<CostPartitioningHeuristic> cp_heuristics =
         get_cp_heuristic_collection_generator_from_options(opts).generate_cost_partitionings(

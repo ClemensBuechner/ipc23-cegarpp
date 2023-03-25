@@ -3,10 +3,10 @@
 #include "../option_parser.h"
 #include "../plugin.h"
 #include "../task_proxy.h"
-#include "../utils/system.h"
 
-#include "../tasks/root_task.h"
 #include "../task_utils/task_properties.h"
+#include "../tasks/root_task.h"
+#include "../utils/logging.h"
 
 #include <cassert>
 #include <iostream>
@@ -19,10 +19,12 @@ using utils::ExitCode;
 namespace tasks {
 MultiplyOutConditionalEffectsTask::MultiplyOutConditionalEffectsTask(
     const shared_ptr<AbstractTask> &parent,
-    const options::Options &opts)
+    utils::LogProxy &log)
     : DelegatingTask(parent),
-      dump_tasks(opts.get<bool>("dump_tasks")),
       parent_has_conditional_effects(task_properties::has_conditional_effects(TaskProxy(*parent))) {
+    if (log.is_at_least_normal()) {
+        log << "Computing MultiplyOutConditionalEffectsTask for root task" << endl;
+    }
     // Create operators for the parent operators only if the task has
     // conditional effects.
     if (parent_has_conditional_effects) {
@@ -45,12 +47,12 @@ MultiplyOutConditionalEffectsTask::MultiplyOutConditionalEffectsTask(
         }
 
         TaskProxy task_proxy(*this);
-        if (dump_tasks) {
-            cout << "original operators:" << endl;
+        if (log.is_at_least_debug()) {
+            log << "original operators:" << endl;
             TaskProxy parent_proxy(*parent);
 //            parent_proxy.get_operators().dump_fdr();
 
-            cout << "compiled operators:" << endl;
+            log << "compiled operators:" << endl;
 
 //            task_proxy.get_operators().dump_fdr();
         }
@@ -222,17 +224,31 @@ int MultiplyOutConditionalEffectsTask::convert_operator_index_to_parent(int inde
     return parent_operator_index[index];
 }
 
+extern shared_ptr<AbstractTask> &get_root_task_without_conditional_effects(
+    utils::LogProxy &log) {
+    static shared_ptr<AbstractTask> task = nullptr;
+    if (!task) {
+        task = make_shared<MultiplyOutConditionalEffectsTask>(
+            g_root_task, log);
+    }
+    return task;
+}
+
 
 static shared_ptr<AbstractTask> _parse(OptionParser &parser) {
-    parser.add_option<bool>(
-        "dump_tasks",
-        "dump the original root task and the compiled one",
-        "false");
+    parser.document_synopsis(
+        "Task with conditional effects compiled away.",
+        "A transformation of the root task that multiplies out all operators"
+        "with conditional effects.");
+    utils::add_log_options_to_parser(parser);
     Options opts = parser.parse();
-    if (parser.dry_run())
+    if (parser.dry_run()) {
         return nullptr;
-    else
-        return make_shared<MultiplyOutConditionalEffectsTask>(g_root_task, opts);
+    } else {
+        utils::LogProxy log = utils::get_log_from_options(opts);
+        return make_shared<MultiplyOutConditionalEffectsTask>(
+            g_root_task, log);
+    }
 }
 
 static Plugin<AbstractTask> _plugin("multiply_out_conditional_effects", _parse);
